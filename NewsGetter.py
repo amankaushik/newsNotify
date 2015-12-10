@@ -3,20 +3,42 @@
 import configparser
 import json
 import urllib.request as uReq
-import urllib
+import urllib.error as uErr
 from retryDeco import retry
+from collections import namedtuple
+from HackerNewsItem import HackerNewsItem
 
 class HackerNewsAPIImpl:
-	def __init__(self, baseUrl):
-		self.baseUrl = baseUrl
-
-	def getJsonResponse(self):
+	def __init__(self):
 		pass
 
-@retry(urllib.error, tries=4, delay=3, backoff=2)
-def getResponse(topStoriesFinalUrl):
+	def getStoryIDs(self, topStoriesBaseUrl, reponseFormat, limit):
+		topStoriesFinalUrl = topStoriesBaseUrl + reponseFormat
+		response = getResponse(topStoriesFinalUrl)
+		storyIDs = json.loads(response.read().decode("utf-8"))
+		storyIDs = storyIDs[:int(limit)]
+		return storyIDs
+
+	def getStories(self, idList, storyBaseUrl, reponseFormat):
+		hackerNewsItemList = []
+		for id in idList:
+			storyFinalUrl = storyBaseUrl + str(id) + reponseFormat
+			response = getResponse(storyFinalUrl)
+			storyData = json.loads(response.read().decode("utf-8"))
+			
+			hackerNewsItem = HackerNewsItem()
+			# JSON response inconsistanr, check if all keys exist for every response
+			hackerNewsItem.id = storyData['id']
+			hackerNewsItem.title = storyData['title']
+			hackerNewsItem.url = storyData['url']
+			hackerNewsItemList.append(hackerNewsItem)
+		return hackerNewsItemList
+
+
+@retry(uErr, tries=4, delay=3, backoff=2)
+def getResponse(url):
 	try:
-		return uReq.urlopen(topStoriesFinalUrl)
+		return uReq.urlopen(url)
 	except HTTPError as err:
 		print ('HTTPError: '.format(err))
 	except URLError as err:
@@ -30,14 +52,8 @@ if __name__ == '__main__':
 	storyBaseUrl = hnProperty['storyBaseUrl']
 	reponseFormat = hnProperty['fromat']
 	topStoriesBaseUrl = hnProperty['topStoriesBaseUrl']
+	limit = int(config['default']['hnLimit'])
 
-	topStoriesFinalUrl = topStoriesBaseUrl + reponseFormat
-	response = getResponse(topStoriesFinalUrl)
-	stotyIDs = json.loads(response.read().decode("utf-8"))
-	limit = config['default']['hnLimit']
-	stotyIDs = stotyIDs[:int(limit)]
-
-	print(len(stotyIDs))
-
-	#storyFinalUrl = storyBaseUrl + id + reponseFormat
-	#hackerNewsAPIImpl = HackerNewsAPIImpl(baseUrl)
+	hackerNewsAPIImpl = HackerNewsAPIImpl()
+	idList = hackerNewsAPIImpl.getStoryIDs(topStoriesBaseUrl, reponseFormat, limit)
+	hackerNewsItemList = hackerNewsAPIImpl.getStories(idList, storyBaseUrl, reponseFormat)

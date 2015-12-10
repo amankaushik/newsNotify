@@ -1,6 +1,6 @@
 class NewsItem:
-	item_url = ""
-	item_title = ""
+	url = ""
+	title = ""
 
 	def __init__(self):
 		pass
