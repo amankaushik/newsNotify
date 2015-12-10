@@ -3,6 +3,8 @@
 import configparser
 import json
 import urllib.request as uReq
+import urllib
+from retryDeco import retry
 
 class HackerNewsAPIImpl:
 	def __init__(self, baseUrl):
@@ -11,6 +13,14 @@ class HackerNewsAPIImpl:
 	def getJsonResponse(self):
 		pass
 
+@retry(urllib.error, tries=4, delay=3, backoff=2)
+def getResponse(topStoriesFinalUrl):
+	try:
+		return uReq.urlopen(topStoriesFinalUrl)
+	except HTTPError as err:
+		print ('HTTPError: '.format(err))
+	except URLError as err:
+		print ('URLError: '.fromat(err))
 
 if __name__ == '__main__':
 	config = configparser.ConfigParser()
@@ -22,16 +32,12 @@ if __name__ == '__main__':
 	topStoriesBaseUrl = hnProperty['topStoriesBaseUrl']
 
 	topStoriesFinalUrl = topStoriesBaseUrl + reponseFormat
-	try:
-		response = uReq.urlopen(topStoriesFinalUrl)
-	except HTTPError as err:
-		print ('HTTPError: '.format(err))
-	except URLError as err:
-		print ('URLError: '.fromat(err))
+	response = getResponse(topStoriesFinalUrl)
+	stotyIDs = json.loads(response.read().decode("utf-8"))
+	limit = config['default']['hnLimit']
+	stotyIDs = stotyIDs[:int(limit)]
 
-	temp = response.read()
-	print (temp.__class__)
-	#print(response.read())
+	print(len(stotyIDs))
 
 	#storyFinalUrl = storyBaseUrl + id + reponseFormat
 	#hackerNewsAPIImpl = HackerNewsAPIImpl(baseUrl)
