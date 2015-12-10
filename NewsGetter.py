@@ -21,17 +21,20 @@ class HackerNewsAPIImpl:
 
 	def getStories(self, idList, storyBaseUrl, reponseFormat):
 		hackerNewsItemList = []
+		count = 1;
 		for id in idList:
 			storyFinalUrl = storyBaseUrl + str(id) + reponseFormat
 			response = getResponse(storyFinalUrl)
 			storyData = json.loads(response.read().decode("utf-8"))
-			
-			hackerNewsItem = HackerNewsItem()
-			# JSON response inconsistanr, check if all keys exist for every response
-			hackerNewsItem.id = storyData['id']
-			hackerNewsItem.title = storyData['title']
-			hackerNewsItem.url = storyData['url']
-			hackerNewsItemList.append(hackerNewsItem)
+			if 'url' in list(storyData.keys()):
+				hackerNewsItem = HackerNewsItem()
+				# JSON response inconsistanr, check if all keys exist for every response
+				hackerNewsItem.id = storyData['id']
+				hackerNewsItem.title = storyData['title']
+				hackerNewsItem.url = storyData['url']
+				hackerNewsItemList.append(hackerNewsItem)
+				print('Story ' + str(count) + ' retrived.')
+				count += 1
 		return hackerNewsItemList
 
 
@@ -45,6 +48,7 @@ def getResponse(url):
 		print ('URLError: '.fromat(err))
 
 if __name__ == '__main__':
+	print('Reading Configuration File ... ')
 	config = configparser.ConfigParser()
 	config.read('config.ini')
 	hnProperty = config['hackernews']
@@ -55,5 +59,16 @@ if __name__ == '__main__':
 	limit = int(config['default']['hnLimit'])
 
 	hackerNewsAPIImpl = HackerNewsAPIImpl()
+	print('Getting Story IDs ... ')
 	idList = hackerNewsAPIImpl.getStoryIDs(topStoriesBaseUrl, reponseFormat, limit)
+	print('Story IDs retrived ... ')
+	print('Getting Story Content ... ')
 	hackerNewsItemList = hackerNewsAPIImpl.getStories(idList, storyBaseUrl, reponseFormat)
+	print('All Stories retrived.')
+
+	print('Writing Stories to File ...')
+	with open('stories.txt', 'w', encoding='utf8') as outF:
+		for item in hackerNewsItemList:
+			json.dump(item.__dict__, outF)
+
+	print('Stories written to file')
