@@ -13,6 +13,8 @@ class HackerNewsAPIImpl:
 		pass
 
 	def getStoryIDs(self, topStoriesBaseUrl, reponseFormat, limit):
+		storyIDs = []
+		
 		topStoriesFinalUrl = topStoriesBaseUrl + reponseFormat
 		response = getResponse(topStoriesFinalUrl)
 		storyIDs = json.loads(response.read().decode("utf-8"))
@@ -22,13 +24,14 @@ class HackerNewsAPIImpl:
 	def getStories(self, idList, storyBaseUrl, reponseFormat):
 		hackerNewsItemList = []
 		count = 1;
+		print (idList)
 		for id in idList:
 			storyFinalUrl = storyBaseUrl + str(id) + reponseFormat
 			response = getResponse(storyFinalUrl)
 			storyData = json.loads(response.read().decode("utf-8"))
-			if 'url' in list(storyData.keys()):
+			if storyData is not None and 'url' in list(storyData.keys()):
 				hackerNewsItem = HackerNewsItem()
-				# JSON response inconsistanr, check if all keys exist for every response
+				# JSON response inconsistant, check if all keys exist for every response
 				hackerNewsItem.id = storyData['id']
 				hackerNewsItem.title = storyData['title']
 				hackerNewsItem.url = storyData['url']
@@ -37,6 +40,13 @@ class HackerNewsAPIImpl:
 				count += 1
 		return hackerNewsItemList
 
+class Utils:
+	def wiriteJSONToFile(self, filename, collection):
+		print('Writing Stories to File ...')
+		with open(filename, 'w', encoding='utf8') as outF:
+			for item in collection:
+				json.dump(item.__dict__, outF)
+		print('Stories written to file')
 
 @retry(uErr, tries=4, delay=3, backoff=2)
 def getResponse(url):
@@ -66,9 +76,6 @@ if __name__ == '__main__':
 	hackerNewsItemList = hackerNewsAPIImpl.getStories(idList, storyBaseUrl, reponseFormat)
 	print('All Stories retrived.')
 
-	print('Writing Stories to File ...')
-	with open('stories.txt', 'w', encoding='utf8') as outF:
-		for item in hackerNewsItemList:
-			json.dump(item.__dict__, outF)
-
-	print('Stories written to file')
+	util = Utils()
+	util.wiriteJSONToFile('stories.txt', hackerNewsItemList)
+	
