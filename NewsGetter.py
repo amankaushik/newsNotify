@@ -12,6 +12,29 @@ class HackerNewsAPIImpl:
 	def __init__(self):
 		pass
 
+	def checkRedundantIDs(self, idList):
+		try:
+			fFile = open('ids.txt', 'r')
+		except (IOError, OSError) as err:
+			print ("Could not open file: " + format(err))
+		else:
+			oldIDList = []
+			for idd in fFile:
+				oldIDList.append(int(idd))
+		finally:
+			fFile.close()
+		try:
+			fFile = open('ids.txt', 'w')
+		except (IOError, OSError) as err:
+			print ("Could not open file: " + format(err))
+		else:
+			for idd in idList:
+				fFile.write(str(idd) + '\n')
+		finally:
+			fFile.close()
+		
+		return [idd for idd in idList if idd not in oldIDList]
+
 	def getStoryIDs(self, topStoriesBaseUrl, reponseFormat, limit):
 		storyIDs = []
 		
@@ -24,7 +47,6 @@ class HackerNewsAPIImpl:
 	def getStories(self, idList, storyBaseUrl, reponseFormat):
 		hackerNewsItemList = []
 		count = 1;
-		print (idList)
 		for id in idList:
 			storyFinalUrl = storyBaseUrl + str(id) + reponseFormat
 			response = getResponse(storyFinalUrl)
@@ -72,10 +94,16 @@ if __name__ == '__main__':
 	print('Getting Story IDs ... ')
 	idList = hackerNewsAPIImpl.getStoryIDs(topStoriesBaseUrl, reponseFormat, limit)
 	print('Story IDs retrived ... ')
-	print('Getting Story Content ... ')
-	hackerNewsItemList = hackerNewsAPIImpl.getStories(idList, storyBaseUrl, reponseFormat)
-	print('All Stories retrived.')
+	print('checking for redundancy ...')
+	finalIDList = hackerNewsAPIImpl.checkRedundantIDs(idList)	
+	print('Checked.')
 
-	util = Utils()
-	util.wiriteJSONToFile('stories.txt', hackerNewsItemList)
+	if not finalIDList:
+		print ('No new stories')
+	else:
+		print('Getting Story Content ... ')
+		hackerNewsItemList = hackerNewsAPIImpl.getStories(finalIDList, storyBaseUrl, reponseFormat)
+		print('All Stories retrived.')
+		util = Utils()
+		util.wiriteJSONToFile('stories.txt', hackerNewsItemList)
 	
