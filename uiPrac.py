@@ -1,8 +1,8 @@
 import sys
 from PyQt5.QtWidgets import (QWidget, QToolTip, QPushButton, QApplication, QMessageBox, QDesktopWidget, 
-	QMainWindow, QAction, qApp, QTextEdit, QHBoxLayout, QVBoxLayout, QGridLayout)
+	QMainWindow, QAction, qApp, QTextEdit, QHBoxLayout, QVBoxLayout, QGridLayout, QLCDNumber, QSlider)
 from PyQt5.QtGui import (QFont, QIcon)
-from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtCore import QCoreApplication, Qt
 
 class MyWidget(QWidget):
 	def __init__(self):
@@ -113,9 +113,40 @@ class MyLayout(QWidget):
 		self.setWindowTitle('Layout')
 		self.show()
 
+class MyEvents(QMainWindow): #QWidget
+	def __init__(self):
+		super().__init__()
+		self.startUI()
+
+	def startUI(self):
+		#lcd = QLCDNumber(self)
+		#sld = QSlider(Qt.Horizontal, self)
+
+		#vBox = QVBoxLayout()
+		#vBox.addWidget(lcd)
+		#vBox.addWidget(sld)
+
+		btn1 = QPushButton("button 1", self)
+		btn1.move(30, 50)
+		btn2 = QPushButton("button 2", self)
+		btn2.move(150, 50)
+		btn1.clicked.connect(self.buttonClicked)
+		btn2.clicked.connect(self.buttonClicked)
+
+		#self.setLayout(vBox)
+		#sld.valueChanged.connect(lcd.display)
+		self.statusBar()
+		self.setGeometry(300, 300, 300, 220)
+		self.show()
+
+	def buttonClicked(self):
+		sender = self.sender()
+		self.statusBar().showMessage(sender.text() + ' was pressed !')
+
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
 	#su = MyWidget()
 	#du = MyWindow()
-	k = MyLayout()
+	#k = MyLayout()
+	e = MyEvents()
 	sys.exit(app.exec_())

@@ -1,0 +1,12 @@
+TARGET = pyrcc5
+TEMPLATE = app
+QT -= gui
+QT += xml
+CONFIG += warn_on release
+CONFIG -= android_install
+target.path = /home/amankaushik/pyProjects/newsnotify/env/bin
+INSTALLS += target
+INCLUDEPATH += /home/amankaushik/pyProjects/newsnotify/PyQt/pyrcc
+VPATH = /home/amankaushik/pyProjects/newsnotify/PyQt/pyrcc
+HEADERS = rcc.h
+SOURCES = rcc.cpp main.cpp

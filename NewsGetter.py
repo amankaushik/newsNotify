@@ -23,6 +23,17 @@ class HackerNewsAPIImpl:
 				oldIDList.append(int(idd))
 		finally:
 			fFile.close()
+		freshIDs = set(idList)	
+		oldIDs = set(oldIDList)
+
+		retainedIDs = oldIDs.intersection(freshIDs)
+		newIDs = freshIDs.difference(retainedIDs)
+		removedIds = oldIDs.difference(retainedIDs)
+
+		print('New IDs: ', newIDs)
+		print('Retained IDs: ', retainedIDs)
+		print('Removed IDs: ', removedIds)
+
 		try:
 			fFile = open('ids.txt', 'w')
 		except (IOError, OSError) as err:
@@ -33,7 +44,8 @@ class HackerNewsAPIImpl:
 		finally:
 			fFile.close()
 		
-		return [idd for idd in idList if idd not in oldIDList]
+		#return [idd for idd in idList if idd not in oldIDList]
+		return list(newIDs)
 
 	def getStoryIDs(self, topStoriesBaseUrl, reponseFormat, limit):
 		storyIDs = []
@@ -78,7 +90,7 @@ def getResponse(url):
 		print ('HTTPError: '.format(err))
 	except URLError as err:
 		print ('URLError: '.fromat(err))
-
+'''
 if __name__ == '__main__':
 	print('Reading Configuration File ... ')
 	config = configparser.ConfigParser()
@@ -106,4 +118,4 @@ if __name__ == '__main__':
 		print('All Stories retrived.')
 		util = Utils()
 		util.wiriteJSONToFile('stories.txt', hackerNewsItemList)
-	
+'''
